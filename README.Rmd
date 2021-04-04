@@ -17,5 +17,7 @@ knitr::opts_chunk$set(
 <!-- badges: end -->
 
 Day 3: Historical
-
+```{r echo=FALSE}
+knitr::include_graphics('plots/day3.gif')
+```
 
