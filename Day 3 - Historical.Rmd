@@ -3,73 +3,110 @@ title: "Day 3: Historical-Strategic Rivalries"
 output: html_notebook
 ---
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(tidyverse)
 library(gganimate)
 library(ggraph)
 library(igraph)
 library(tidygraph)
+library(ggthemes)
+library(geofacet)
+library(igraph)
+extrafont::loadfonts(device="win")
+myFont <- "Montserrat"
+windowsFonts(Montserrat  = myFont)
 ```
 
 ```{r}
 # Source data :https://gist.github.com/svmiller/63dace4aa5a00eddce307d964c7bac23#file-strategic_rivalries-csv
 strategic_rivalries <- read_csv('data/strategic_rivalries.csv')
+strategic_rivalries %>% 
+  count(type1)
 ```
 
 ```{r}
-ggraph_df <- strategic_rivalries %>%
-  mutate(sidea = if_else(sidea == 'Great Britain','Britain',sidea),
-         sideb = if_else(sidea == 'Great Britain','Britain',sideb)) %>% 
-  rename(from = sidea, to = sideb) %>%
 
+ggraph_df <- strategic_rivalries %>%
+  mutate(
+    sidea = if_else(str_detect(sidea,'Britain'), 'Britain', sidea),
+    sideb = if_else(str_detect(sideb,'Britain'), 'Britain', sideb)
+  ) %>% 
+  mutate(type1 = str_to_title(type1)) %>% 
+  filter(!str_detect(sidea, 'Isr'),!str_detect(sideb, 'Isr')) %>%
+  rename(from = sidea, to = sideb) %>%
   mutate(styear  = as.integer(styear),
-         endyear = as.integer(endyear), ) %>%
-  add_count(from) %>%
-  #filter(n > 1) %>%
+         endyear = as.integer(endyear)) %>%
   as_tbl_graph(directed  = FALSE) %>%
   activate(nodes) %>%
-  mutate(
-    community = as.factor(group_louvain())
-  )
-```
-```{r}
-strategic_rivalries %>%
-  mutate(sidea = if_else(sidea == 'Great Britain','Britain',sidea),
-         sideb = if_else(sidea == 'Great Britain','Britain',sideb)) %>% 
-  count(sidea,sort = TRUE)
+  mutate(community = as.factor(group_louvain())) %>%
+  add_count(community) %>%
+  filter(n > 2) 
 ```
 
 
-```{r}
-p <- ggraph_df %>% 
-  ggraph(layout = 'kk') +
-  geom_edge_link(edge_colour = '#991814', edge_width = 1, edge_alpha = 1) +
-    geom_node_text(aes(label = name,color =community ),size = 5,check_overlap = TRUE) +
-  #geom_node_point(aes(,color =community )) +
-  #scale_color_tableau() +
-  #scale_edge_color_manual(values = c('#118ab2', '#ef476f','#2a9d8f','#e76f51')) +
-  theme_graph()+
-  theme(legend.position = 'none')+
-  labs(title = 'Strategic Rivalries', subtitle = 'Year {frame_time}') +
-  transition_events( start= styear,end = endyear, enter_length = 1L, exit_length = 3L  ) +
-  enter_fade() + 
+
+```{r fig.width=20,fig.height=20}
+
+p <- ggraph_df %>%
+  ggraph(layout = 'nicely') +
+  geom_edge_link(aes(color = type1),
+                 #color =  '#cb997e',
+                 edge_width = 1.4,
+                 edge_alpha = 0.7) +
+  geom_node_text(
+    aes(label = name, color = community),
+    check_overlap = TRUE,
+    color = 'gray30',
+    size = 5,
+    family =  "Montserrat"
+  ) +
+  scale_color_tableau(guide = FALSE) +
+  scale_edge_colour_manual(values = c('#06d6a0', '#ffd166', '#ef476f', '#118ab2'),
+                           name = 'Nature of rivalry') +
+  labs(
+    title = 'A History of Strategic Rivalries Between Nations from 1494 to 2010',
+    color = ' Rivalry type',
+    subtitle = 'Year {frame_time}',
+    caption = 'Data: svmiller\nVisualization: mcnakhaee'
+  ) +
+  theme_graph() +
+  theme(
+    text = element_text(family =  "Montserrat"),
+    legend.position = 'top',
+    legend.text = element_text(size = 14),
+    plot.title = element_text(
+      color = 'gray20',
+      size = 25,
+      family =  "Montserrat"
+    ),
+    plot.subtitle = element_text(
+      color = 'gray20',
+      size = 20,
+      family =  "Montserrat"
+    ),
+    plot.caption  = element_text(
+      color = 'gray30',
+      size = 15,
+      family =  "Montserrat"
+    ),
+    plot.background = element_rect(fill = 'gray95'),
+  ) +
+  transition_events(
+    start = styear,
+    end = endyear,
+    enter_length = 1L,
+    exit_length = 3L
+  ) +
+  enter_fade() +
   exit_fade()
 
-#p
-animate(p, 100, 2,height = 1100, width = 1100)
+
+animate(p, 100, 2, height = 1100, width = 1100)
 
 ```
 
-```{r fig.height=20,fig.width=20}
-ggraph_df %>% 
-  ggraph(layout = 'kk') +
-  geom_edge_link(edge_colour = '#991814', edge_width = 1, edge_alpha = 1) +
-    geom_node_text(aes(label = name,color =community ),size = 5,check_overlap = TRUE) +
-  #geom_node_point(aes(,color =community )) +
-  #scale_color_tableau() +
-  #scale_edge_color_manual(values = c('#118ab2', '#ef476f','#2a9d8f','#e76f51')) +
-  theme_graph()+
-  theme(legend.position = 'none')+
-  labs(title = 'Strategic Rivalries', subtitle = 'Year {frame_time}')
+
+```{r}
+anim_save('plots/day3.gif')
 ```
 
