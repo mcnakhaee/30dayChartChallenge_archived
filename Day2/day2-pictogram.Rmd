@@ -1,0 +1,25 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(tidytext)
+library(waffle)
+tuesdata$avatar %>% 
+  unnest_tokens(word,full_text) %>% 
+  filter(word %in% c('fire','water','air','earth')) %>% 
+  count(book,word) %>% 
+    mutate(img = here::here("Day2", "img", glue::glue("{str_to_lower(word)}.png"))) %>% 
+  View()
+```
+
+```{r}
+tuesdata <- tidytuesdayR::tt_load(2020, week = 33)
+tuesdata$avatar
+```
+
+```{r}
+
+```
