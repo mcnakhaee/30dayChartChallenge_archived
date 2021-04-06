@@ -16,7 +16,22 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-Day 3: Historical
+
+
+### Day 5: Slope
+
+```{r echo=FALSE}
+knitr::include_graphics('plots/Day5-Slope.png')
+```
+
+
+### Day 4: Magical
+```{r echo=FALSE}
+knitr::include_graphics('plots/Day4-Magic.png')
+```
+
+
+### Day 3: Historical
 ```{r echo=FALSE}
 knitr::include_graphics('plots/day3.gif')
 ```

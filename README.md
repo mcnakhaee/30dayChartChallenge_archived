@@ -6,4 +6,14 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-Day 3: Historical ![](plots/day3.gif)<!-- -->
+### Day 5: Slope
+
+<img src="plots/Day5-Slope.png" width="4500" />
+
+### Day 4: Magical
+
+<img src="plots/Day4-Magic.png" width="3000" />
+
+### Day 3: Historical
+
+![](plots/day3.gif)<!-- -->

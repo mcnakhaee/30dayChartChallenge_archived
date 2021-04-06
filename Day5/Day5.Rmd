@@ -1,0 +1,103 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(ggalluvial)
+library(ggthemes)
+library(schrute)
+library(lubridate)
+library(ggrepel)
+library(tidytext)
+extrafont::loadfonts(device="win")
+windowsFont('Oswald')
+
+extrafont::loadfonts(device="win")
+myFont <- "Montserrat"
+windowsFonts(Montserrat  = myFont)
+myFont <- "Oswald"
+windowsFonts(Oswald  = myFont)
+```
+
+
+
+
+```{r}
+list_characters <- c('Andy','Angela','Jan','Darryl','Dwight','Erin','Jim','Michael','Kevin','Ryan','Pam')
+```
+
+```{r fig.height=12,fig.width=15}
+p <- theoffice %>%
+  unnest_tokens(word, text) %>%
+  group_by(season, character) %>%
+  summarise(n_words = n()) %>%
+  ungroup() %>%
+  group_by(season) %>%
+  mutate(percentage = round(n_words * 100 / sum(n_words), 1)) %>%
+  ungroup() %>%
+  mutate(season = paste('Season ', season)) %>%
+  filter(character %in% list_characters) %>%
+  ggplot(
+    aes(
+      x = season,
+      stratum = fct_reorder(character, percentage),
+      alluvium = character,
+      label = character,
+      fill = character,
+      y = percentage
+    )
+  ) +
+    scale_fill_manual(
+    values = c(
+      '#eaac8b',
+      "#f9c74f",
+      "#f8961e",
+      "#f3722c",
+      "#f94144",
+      "#90be6d",
+      "#43aa8b",
+      "#2ec4b6",
+      '#90e0ef',
+      "#048ba8",
+      '#2c699a',
+      '#54478c',
+      '#2a9d8f'
+    )
+  )+
+  scale_x_discrete(expand = c(.1, .1)) +
+  geom_flow() +
+  geom_stratum(alpha = .5, colour = 'grey90') +
+  geom_text_repel(stat = "stratum",
+            size = 4,
+            family = 'Montserrat',
+            direction = 'x',
+            nudge_y = 0.41,
+            force=0.1) +
+  labs(
+    title = str_to_title('Who talked the Most in the Office'),
+    subtitle = 'This plot shows the percentage of total words that some characters in the Office used in their dialogs',
+    caption = 'Data: the Schrute Package \nVisualization: mcnakhaee'
+  ) +
+  theme_tufte() +
+  theme(
+    text = element_text(family = 'Montserrat',size = 15),
+    legend.position = "none",
+    axis.title  = element_blank(),
+    axis.text.y.left = element_text(margin = margin(l = 50)),
+    plot.caption  = element_text(
+      color = 'gray30',
+      size = 12,
+      family =  "Montserrat",
+      margin = margin(t = 20)
+    ),
+  ) 
+```
+
+
+```{r}
+ggsave(filename = 'Day5-Slope.png',path = here::here('plots'),plot = p ,
+                      dpi = 300, width = 15, height =12)
+```
+
