@@ -3,7 +3,7 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(tidyverse)
 library(ggalluvial)
 library(ggthemes)
@@ -11,14 +11,6 @@ library(schrute)
 library(lubridate)
 library(ggrepel)
 library(tidytext)
-extrafont::loadfonts(device="win")
-windowsFont('Oswald')
-
-extrafont::loadfonts(device="win")
-myFont <- "Montserrat"
-windowsFonts(Montserrat  = myFont)
-myFont <- "Oswald"
-windowsFonts(Oswald  = myFont)
 ```
 
 
@@ -72,7 +64,7 @@ p <- theoffice %>%
   geom_text_repel(stat = "stratum",
             size = 4,
             family = 'Montserrat',
-            direction = 'x',
+            direction = 'y',
             nudge_y = 0.41,
             force=0.1) +
   labs(
@@ -93,6 +85,8 @@ p <- theoffice %>%
       margin = margin(t = 20)
     ),
   ) 
+
+p
 ```
 
 
