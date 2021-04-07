@@ -1,0 +1,119 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(tidytuesdayR)
+library(ggfx)
+library(ggthemes)
+library(ggtext)
+```
+
+```{r}
+tt <- tt_load("2020-09-22")
+```
+
+```{r fig.height=10,fig.width=10}
+data <- tt$peaks %>%
+  #inner_join(tt$members)
+  mutate(
+    height_km = height_metres / 1000,
+    first_ascent_country = str_remove(first_ascent_country, 'W '),
+    first_ascent_country = str_replace_all(first_ascent_country, fixed(','), '\n'),
+    first_ascent_country = if_else(is.na(first_ascent_country), '-', first_ascent_country),
+    first_ascent_year = as.character(first_ascent_year),
+    first_ascent_year = if_else(is.na(first_ascent_year), 'Unclimbed', first_ascent_year),
+    height_metres = as.character(height_metres)
+  ) %>%
+  filter(height_km > 7.5) %>%
+  arrange(desc(height_metres)) %>%
+  mutate(climbing_status = if_else(peak_name == 'Everest', 'Everest', climbing_status)) %>%
+  add_rownames() %>%
+  mutate(
+    rowname = as.integer(rowname),
+    angle =  90 - 360 * (rowname - .5) / n(),
+    hjust = ifelse(angle < -90, 1, 0) ,
+    left_hjust = ifelse(angle < -90, 0.5, 0.5) ,
+    
+    angle = ifelse(angle < -90, angle + 180, angle),
+    left_angle = ifelse(angle < -90, angle + 90, angle),
+    peak_name_ascent_year = paste(peak_name, ' (', height_metres, ')', sep = ''),
+    first_ascent_year = if_else(
+      first_ascent_year == 'Unclimbed',
+      'Unclimbed',
+      first_ascent_year
+    )
+  )
+
+p <- data %>%
+  ggplot(aes(x = rowname, y = 8, color = climbing_status)) +
+  with_shadow(
+    with_bloom(
+      geom_point(aes(size = height_km), shape = 17),
+      threshold_lower = 80,
+      threshold_upper = 100,
+      sigma = 6,
+      strength = 1
+    ),
+    colour = "grey70",
+    x_offset = 2,
+    y_offset = 2,
+  ) +
+  scale_y_continuous(limit = c(6, 9)) +
+  scale_x_continuous(limit = c(1, 43)) +
+  geom_text(
+    aes(
+      label = peak_name_ascent_year,
+      y = 8 + .3,
+      angle = angle,
+      hjust = hjust
+    ),
+    family = 'Montserrat',
+    size = 3
+  ) +
+  geom_text(
+    aes(
+      label = first_ascent_year,
+      y = 7.6,
+      angle = left_angle,
+      hjust = left_hjust
+    ),
+    family = 'Montserrat',
+    size = 2.7
+  ) +
+  scale_color_manual(values = c('#14213d', '#219ebc', '#fca311')) +
+  scale_size_continuous(range = c(4, 12)) +
+  labs(caption = 'Visualization: mcnakhaee') +
+  coord_polar(clip = 'off') +
+  annotate(
+    geom = "text",
+    x = 6,
+    y = 6,
+    hjust = .5,
+    vjust = 0,
+    label = "Highest Climbed and Unclimbed\n Himalayan peaks ",
+    size = 5.3,
+    lineheight = .8,
+    family = 'Montserrat',
+    color = "#14213d"
+  ) +
+  theme_void() +
+  theme(
+    legend.position = 'none',
+    plot.caption  = element_text(
+      color = 'gray30',
+      size = 8,
+      family =  "Montserrat"
+    )
+  )
+p
+```
+
+
+```{r}
+ggsave(filename = 'Day6-Experimental.png',path = here::here('plots'),plot = p ,
+                      dpi = 300, width = 10, height =10)
+```
+
