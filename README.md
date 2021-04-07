@@ -6,6 +6,10 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
+### Day 6: Experimental
+
+<img src="plots/Day6-Experimental.png" width="3000" />
+
 ### Day 5: Slope
 
 <img src="plots/Day5-Slope.png" width="4500" />
