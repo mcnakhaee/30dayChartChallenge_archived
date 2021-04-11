@@ -1,0 +1,274 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(ggforce)
+library(ggthemes)
+library(ggfx)
+library(ggchicklet)
+library(extrafont)
+library(patchwork)
+library(showtext)
+font_family <- 'Oswald'
+panel_col <- '#D89676'
+```
+
+```{r}
+artworks <- read_csv('../data/moma/artworks.csv')
+artworks <- artworks %>% 
+clean_names()
+rothko <- artworks %>% 
+  filter(name %in% c('Mark Rothko')) %>% 
+  separate(medium, c("medium", "surface"), sep = " on ",
+           fill = "right", extra = "merge")%>%
+    mutate(surface = if_else(is.na(surface),medium,surface),
+            surface = str_to_title(surface),
+           area = height_cm * width_cm)
+```
+
+
+```{r }
+surface_p <- rothko %>% 
+  count(surface,sort = TRUE) %>% 
+  ggplot(aes(x = 1, y = n, fill = surface ,alpha = n)) +
+  geom_chicklet(radius =  grid::unit(16, "pt"),lwd = 2.5,colour = panel_col)+
+  scale_x_continuous(limits = c(0.5,1.5)) +
+  scale_fill_manual(values = c('#C8340E','#BB2B44','#1A5994')) +
+  scale_alpha(range  = c(0.4,0.8),guide = 'none') +
+  labs(fill = '',
+       title = 'Surface') +
+    guides(fill = guide_legend(override.aes = list(size = 10,alpha =0.6) )) +
+  theme_void() +
+  theme(panel.background = element_rect(fill = panel_col,color =panel_col ),
+        plot.title = element_text(family = font_family,hjust = 0.5,size = 24),
+        legend.position = 'top',
+        legend.text = element_text(family = font_family,size = 15),
+        legend.margin = margin(b = 10,t = 10))
+```
+
+```{r }
+medium_p <- rothko %>%
+  separate_rows(medium, sep = ' and ') %>%
+  separate_rows(medium, sep = ',') %>%
+  mutate(medium = str_to_sentence(medium),
+         medium = fct_lump(medium, n = 4)) %>%
+  count(medium) %>%
+  ggplot(aes(x = 1, y = n, fill = medium , n)) +
+  geom_chicklet(radius =  grid::unit(16, "pt"),
+                lwd = 3.5,
+                colour = "#D89676") +
+  scale_x_continuous(limits = c(0.5, 1.5)) +
+  scale_fill_manual(values = c('#80657F', '#E1651D', '#533733', '#F1E0D6', '#EBC62D')) +
+  labs(fill = '',
+       title = 'Medium') +
+    guides(fill = guide_legend(override.aes = list(size = 10) )) +
+  theme_void() +
+  theme(panel.background = element_rect(fill = panel_col,color =panel_col ),
+        plot.title = element_text(family = font_family,hjust = 0.5,size = 24),
+        legend.position = 'top',
+        legend.text = element_text(family = font_family,size = 15),
+        legend.margin = margin(b = 10,t = 10))
+```
+
+
+```{r}
+avg_frame_data <- rothko %>% summarize(avg_width_cm = mean(width_cm),
+                               avg_height_cm = mean(height_cm))
+
+min_frame_data <- rothko %>% filter(area == min(area))
+
+max_frame_data <- rothko %>% filter(area == max(area))
+
+text_color = 'grey20'
+frames_p <- ggplot() +
+  geom_rect(
+    data = max_frame_data,
+    aes(
+      xmin = 0,
+      xmax = width_cm,
+      ymin = 0,
+      ymax = height_cm
+    ),
+    fill = '#1A5994',
+    alpha = 0.7,
+    inherit.aes = FALSE
+  ) +
+    geom_rect(
+    data = avg_frame_data,
+    aes(
+      xmin = 0,
+      xmax = avg_width_cm,
+      ymin = 0,
+      ymax = avg_height_cm
+    ),
+    fill = '#E1651D',
+    alpha = 0.7,
+    inherit.aes = FALSE
+  ) +
+  geom_rect(
+    data = min_frame_data,
+    aes(
+      xmin = 0,
+      xmax = width_cm,
+      ymin = 0,
+      ymax = height_cm
+    ),
+    fill = '#BB2B44',
+    alpha = 0.7,
+    inherit.aes = FALSE
+  ) +
+
+  geom_text(
+    data = avg_frame_data,
+    mapping = aes(
+      x = avg_width_cm / 2,
+      y =  avg_height_cm -10,
+      label = paste('Average width:', round(avg_width_cm), 'cm')
+    ),
+    size = 7,
+    family = font_family,
+    color = text_color
+  ) +
+  geom_text(
+    data = avg_frame_data,
+    mapping = aes(
+      x = avg_width_cm -1,
+      y =  avg_height_cm / 2,
+      label = paste('Average height:', round(avg_height_cm), 'cm')
+    ),
+    size = 7,
+    family = font_family,
+    color = text_color
+  ) +
+  
+  
+  geom_text(
+    data = min_frame_data,
+    mapping = aes(
+      x = width_cm + 10 ,
+      y =  height_cm / 2,
+      label = paste('Min height:', round(height_cm), 'cm')
+    ),
+    size = 5,
+    family = font_family,
+    color = text_color
+  ) +
+  
+  geom_text(
+    data = min_frame_data,
+    mapping = aes(
+      x = width_cm / 2 + 10,
+      y =  height_cm + 10,
+      label = paste('Min width:', round(width_cm), 'cm')
+    ),
+    size = 5,
+    family = font_family,
+    color = text_color
+  ) +
+  
+  geom_text(
+    data = max_frame_data,
+    mapping = aes(
+      x = width_cm - 20,
+      y =  height_cm / 2,
+      label = paste('Max height:', round(height_cm), 'cm')
+    ),
+    size = 6,
+    family = font_family,
+    color = text_color
+  ) +
+  
+  geom_text(
+    data = max_frame_data,
+    mapping = aes(
+      x = width_cm / 2 ,
+      y =  height_cm - 10,
+      label = paste('Max width:', round(width_cm), 'cm')
+    ),
+    size = 7,
+    family = font_family,
+    color = text_color
+  ) +
+  theme_void()
+
+frames_p
+```
+```{r}
+years_p <-rothko %>% 
+  mutate(date_years = as.integer(str_extract(date,'\\d{4}'))) %>% 
+  count(date_years) %>% 
+  mutate(n = as.integer(n)) %>% 
+  ggplot(aes(x = 1,y = date_years)) +
+  geom_line(color = 'grey40') +
+  geom_point(aes(size = n),color = '#EBC62D') +
+  geom_text(aes(x = 0.9,label = date_years),angle= 90,family = font_family,size= 7) +
+  geom_text(aes(x = 1,label = n),family = font_family,size = 7) +
+  annotate('text',x = 1.1, y = 1968,label = 'Year of painting',family = font_family,size = 7,color = 'grey40' ) +
+  scale_size(range =c(10,14))+
+  scale_x_continuous(limits = c(0.85,1.4))+
+  coord_flip()+
+  theme_void() +
+  theme(legend.position = 'none')
+```
+
+
+```{r fig.width=20}
+t <-
+  ggplot(
+    tibble(
+      x = 1,
+      y = 1,
+      label = "<b style='font-size:36pt;font-family:Oswald'>Mark Rothko Paintings at the Museum of Modern Art</b><br><br>
+      <span style='font-size:25pt;color:#737373'>Mark Rothko (1903–1970) was an American Abstract artist of the mid-20th century.He had joined the vanguard of the new American artist – abstract expressionist by the mid 1940s. Rothko first developed this compositional strategy in 1947. Described as “Color Field painting”, which is a style characterized by significant open space and an expressive use of color. This visualization gives an overview of Rothko's works at the the Museum of Modern Art.<br>
+</span><br>
+      <i style='font-size:15pt;color:#737373;'>  source: moma.org  </i>"
+    )
+  ) +
+  geom_textbox(
+    aes(x, y, label = label),
+    width = unit(45.5, "lines"),
+    family = font_family,
+    color = "grey30",
+    lineheight = 1.3,
+    hjust = 0.5,
+    box.colour = NA
+  ) +
+  theme_void() +
+  theme(plot.margin = margin(l = 10, t = 0),
+        panel.margin = margin(l = 10, t = 0)) +
+  coord_cartesian(clip = 'off')
+```
+
+
+
+```{r fig.height=13,fig.width=30}
+dummy_plot <-
+  plot_spacer() + theme(plot.background = element_rect(fill = 'white'))
+
+final_plot <- plot_grid(
+  plot_grid(
+    dummy_plot,
+    years_p,
+    frames_p,
+    nrow = 3,
+    rel_heights = c(0.2, 0.3, 0.5)
+  ),
+  dummy_plot,
+  surface_p,
+  dummy_plot,
+  medium_p,
+  ncol = 5,
+  rel_widths  = c(0.5, 0.03, 0.2, 0.03, 0.2)
+) +
+  theme(plot.background = element_rect(fill = 'white')) +
+  draw_plot(t, .2, .8, .65, .47, hjust = .5, vjust = .5) +
+  coord_cartesian(clip = 'off') 
+
+
+ ggsave(filename = 'Day10-Abstract.png',path = here::here('plots'),plot = final_plot ,
+                      dpi = 300, width = 30, height =15)
+```
+

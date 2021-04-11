@@ -16,6 +16,12 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
+### Day 10: Abstract
+```{r echo=FALSE}
+knitr::include_graphics('plots/Day10-Abstract.png')
+```
+
+
 ### Day 6: Experimental
 
 ```{r echo=FALSE}
