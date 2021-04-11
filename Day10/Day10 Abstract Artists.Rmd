@@ -93,6 +93,8 @@ frames_p <- ggplot() +
       ymax = height_cm
     ),
     fill = '#1A5994',
+    #    fill = 'white',
+    lw = 14,
     alpha = 0.7,
     inherit.aes = FALSE
   ) +
@@ -105,6 +107,8 @@ frames_p <- ggplot() +
       ymax = avg_height_cm
     ),
     fill = '#E1651D',
+    #fill = 'white',
+    #width = 14,
     alpha = 0.7,
     inherit.aes = FALSE
   ) +
@@ -117,6 +121,8 @@ frames_p <- ggplot() +
       ymax = height_cm
     ),
     fill = '#BB2B44',
+    #    fill = 'white',
+    #width = 14,
     alpha = 0.7,
     inherit.aes = FALSE
   ) +
@@ -148,7 +154,7 @@ frames_p <- ggplot() +
   geom_text(
     data = min_frame_data,
     mapping = aes(
-      x = width_cm + 10 ,
+      x = width_cm + 17 ,
       y =  height_cm / 2,
       label = paste('Min height:', round(height_cm), 'cm')
     ),
